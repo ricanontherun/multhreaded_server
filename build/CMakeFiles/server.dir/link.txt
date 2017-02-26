@@ -1,0 +1,1 @@
+/usr/bin/c++   --std=c++14   CMakeFiles/server.dir/server.cpp.o CMakeFiles/server.dir/zmq/zmq_functions.cpp.o  -o server -rdynamic -lzmq -lpthread 
