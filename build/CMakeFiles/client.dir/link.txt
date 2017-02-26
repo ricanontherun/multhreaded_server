@@ -1,1 +1,0 @@
-/usr/bin/c++   --std=c++14   CMakeFiles/client.dir/client.cpp.o CMakeFiles/client.dir/zmq/zmq_functions.cpp.o  -o client -rdynamic -lzmq 
