@@ -51,7 +51,7 @@ int main()
     getchar();
 
     for ( int i = 0; i < 20; ++i ) {
-      queue.push("tcp://localhost:5555");
+      queue.push("tcp://159.203.180.106:5555");
     }
   }
 }
