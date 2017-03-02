@@ -1,27 +1,57 @@
 #include <iostream>
+#include <thread>
 
 #include <zmq.hpp>
 #include <zmq_functions.h>
+#include "queue.hpp"
+
+ThreadSafeQueue<std::string> queue;
+
+void ClientWorker(void * ctx)
+{
+  zmq::context_t * context = (zmq::context_t *) ctx;
+  zmq::socket_t socket(*context, ZMQ_REQ);
+
+  zmq::message_t request;
+  zmq::message_t reply;
+  std::string string = "Hello!!!";
+
+  while (true)
+  {
+    if ( !queue.empty() ) {
+      std::string address = queue.pop();
+
+      socket.connect(address);
+
+      ZMQFunctions::pack(request, (void *) string.c_str(), string.length());
+
+      socket.send(request);
+
+      socket.recv(&reply);
+
+      std::cout << "received reply from server\n";
+    }
+  }
+}
 
 int main()
 {
+  // Definitely want to reuse the same context.
   zmq::context_t context(1);
-  zmq::socket_t socket(context, ZMQ_REQ);
 
-  socket.connect("tcp://localhost:5555");
+  // Create our threads.
+  std::thread thread1(ClientWorker, (void *)&context);
+  std::thread thread2(ClientWorker, (void *)&context);
+  std::thread thread3(ClientWorker, (void *)&context);
+  std::thread thread4(ClientWorker, (void *)&context);
 
-  zmq::message_t reply_message;
-  zmq::message_t request_message;
+  // This loop simply waits for an entered character, and fills the queue with 20 identical
+  // addresses. This tests the server's capability to handle many concurrent requests.
+  while (true) {
+    getchar();
 
-  const char * request = "hello";
-  ZMQFunctions::pack(request_message, (void *) request, 5);
-
-  std::cout << "Sending request '" << request << "'\n";
-  socket.send(request_message);
-
-  socket.recv(&reply_message);
-  std::string reply_string;
-  ZMQFunctions::extract(reply_message, reply_string);
-
-  std::cout << "Received reply '" << reply_string << "'\n";
+    for ( int i = 0; i < 20; ++i ) {
+      queue.push("tcp://localhost:5555");
+    }
+  }
 }
